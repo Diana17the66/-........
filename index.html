@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Студенческая Библиотека</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 20px; background-color: #f8f9fa; }
+        .library-card { background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; }
+        .nav-tabs { margin-bottom: 20px; }
+        .stat-card { background: #f1f8ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center my-4">📚 Студенческая Библиотека</h1>
+        
+        <div class="library-card">
+            <!-- Навигация -->
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a class="nav-link active" data-bs-toggle="tab" href="#books">Книги</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#students">Студенты</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#loans">Выдачи</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#stats">Статистика</a>
+                </li>
+            </ul>
+
+            <!-- Контент -->
+            <div class="tab-content">
+                <!-- Вкладка книг -->
+                <div class="tab-pane fade show active" id="books">
+                    <button class="btn btn-primary mb-3" onclick="showBookModal()">Добавить книгу</button>
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Название</th>
+                                <th>Автор</th>
+                                <th>Год</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="booksTable"></tbody>
+                    </table>
+                </div>
+
+                <!-- Вкладка студентов -->
+                <div class="tab-pane fade" id="students">
+                    <button class="btn btn-primary mb-3" onclick="showStudentModal()">Добавить студента</button>
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>ФИО</th>
+                                <th>Группа</th>
+                                <th>Контакт</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTable"></tbody>
+                    </table>
+                </div>
+
+                <!-- Вкладка выдачи -->
+                <div class="tab-pane fade" id="loans">
+                    <button class="btn btn-primary mb-3" onclick="showLoanModal()">Оформить выдачу</button>
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Студент</th>
+                                <th>Книга</th>
+                                <th>Дата выдачи</th>
+                                <th>Срок возврата</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="loansTable"></tbody>
+                    </table>
+                </div>
+
+                <!-- Вкладка статистики -->
+                <div class="tab-pane fade" id="stats">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="stat-card">
+                                <h4>📊 Книг на руках</h4>
+                                <canvas id="loansChart" height="200"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="stat-card">
+                                <h4>⚠ Просроченные книги</h4>
+                                <canvas id="overdueChart" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card mt-3">
+                        <h4>👥 Активные читатели</h4>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Студент</th>
+                                    <th>Книг на руках</th>
+                                    <th>Просрочено</th>
+                                </tr>
+                            </thead>
+                            <tbody id="readersStats"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальные окна -->
+    <div class="modal fade" id="bookModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="bookModalTitle">Добавить книгу</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="bookForm">
+                        <input type="hidden" id="bookId">
+                        <div class="mb-3">
+                            <label for="bookTitle" class="form-label">Название</label>
+                            <input type="text" class="form-control" id="bookTitle" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="bookAuthor" class="form-label">Автор</label>
+                            <input type="text" class="form-control" id="bookAuthor" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="bookYear" class="form-label">Год издания</label>
+                            <input type="number" class="form-control" id="bookYear">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" onclick="saveBook()">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="studentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="studentModalTitle">Добавить студента</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="studentForm">
+                        <input type="hidden" id="studentId">
+                        <div class="mb-3">
+                            <label for="studentName" class="form-label">ФИО</label>
+                            <input type="text" class="form-control" id="studentName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="studentGroup" class="form-label">Группа</label>
+                            <input type="text" class="form-control" id="studentGroup" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="studentContact" class="form-label">Контакт</label>
+                            <input type="text" class="form-control" id="studentContact">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" onclick="saveStudent()">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="loanModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Оформить выдачу книги</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="loanForm">
+                        <div class="mb-3">
+                            <label for="loanStudent" class="form-label">Студент</label>
+                            <select class="form-select" id="loanStudent" required>
+                                <option value="">Выберите студента</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="loanBook" class="form-label">Книга</label>
+                            <select class="form-select" id="loanBook" required>
+                                <option value="">Выберите книгу</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="loanDueDate" class="form-label">Срок возврата</label>
+                            <input type="date" class="form-control" id="loanDueDate" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" onclick="saveLoan()">Оформить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключение скриптов -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Данные приложения (используем localStorage для сохранения между сессиями)
+        let students = JSON.parse(localStorage.getItem('libraryStudents')) || [
+            { id: 1, name: "Иванов Иван Иванович", group: "ИТ-101", contact: "ivanov@example.com" },
+            { id: 2, name: "Петрова Анна Сергеевна", group: "ИТ-102", contact: "petrova@example.com" }
+        ];
+
+        let books = JSON.parse(localStorage.getItem('libraryBooks')) || [
+            { id: 1, title: "Введение в программирование", author: "Смит Джон", year: 2020, available: true },
+            { id: 2, title: "Основы баз данных", author: "Кузнецов А.А.", year: 2019, available: false }
+        ];
+
+        let loans = JSON.parse(localStorage.getItem('libraryLoans')) || [
+            { 
+                id: 1, 
+                studentId: 2, 
+                bookId: 2, 
+                issueDate: new Date().toISOString().split('T')[0], 
+                dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                returned: false 
+            }
+        ];
+
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            renderBooks();
+            renderStudents();
+            renderLoans();
+            renderStats();
+        });
+
+        // Сохранение данных в localStorage
+        function saveData() {
+            localStorage.setItem('libraryStudents', JSON.stringify(students));
+            localStorage.setItem('libraryBooks', JSON.stringify(books));
+            localStorage.setItem('libraryLoans', JSON.stringify(loans));
+        }
+
+        // ===== КНИГИ =====
+        function renderBooks() {
+            const table = document.getElementById('booksTable');
+            table.innerHTML = books.map(book => {
+                const isAvailable = book.available ? 'Доступна' : 'На руках';
+                const badgeClass = book.available ? 'bg-success' : 'bg-warning';
+                
+                return `
+                    <tr>
+                        <td>${book.id}</td>
+                        <td>${book.title}</td>
+                        <td>${book.author}</td>
+                        <td>${book.year || '-'}</td>
+                        <td><span class="badge ${badgeClass}">${isAvailable}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="editBook(${book.id})">✏️</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteBook(${book.id})">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function showBookModal(book = null) {
+            const modal = new bootstrap.Modal(document.getElementById('bookModal'));
+            const form = document.getElementById('bookForm');
+            
+            form.reset();
+            document.getElementById('bookId').value = '';
+            
+            if (book) {
+                document.getElementById('bookModalTitle').textContent = 'Редактировать книгу';
+                document.getElementById('bookId').value = book.id;
+                document.getElementById('bookTitle').value = book.title;
+                document.getElementById('bookAuthor').value = book.author;
+                document.getElementById('bookYear').value = book.year || '';
+            } else {
+                document.getElementById('bookModalTitle').textContent = 'Добавить книгу';
+            }
+            
+            modal.show();
+        }
+
+        function saveBook() {
+            const id = document.getElementById('bookId').value;
+            const title = document.getElementById('bookTitle').value.trim();
+            const author = document.getElementById('bookAuthor').value.trim();
+            const year = document.getElementById('bookYear').value;
+            
+            if (!title || !author) {
+                alert('Заполните обязательные поля!');
+                return;
+            }
+            
+            if (id) {
+                // Редактирование существующей книги
+                const index = books.findIndex(b => b.id == id);
+                if (index !== -1) {
+                    books[index] = { 
+                        ...books[index],
+                        title, 
+                        author, 
+                        year: year || null
+                    };
+                }
+            } else {
+                // Добавление новой книги
+                const newId = books.length > 0 ? Math.max(...books.map(b => b.id)) + 1 : 1;
+                books.push({
+                    id: newId,
+                    title,
+                    author,
+                    year: year || null,
+                    available: true
+                });
+            }
+            
+            saveData();
+            renderBooks();
+            bootstrap.Modal.getInstance(document.getElementById('bookModal')).hide();
+        }
+
+        function editBook(id) {
+            const book = books.find(b => b.id == id);
+            if (book) showBookModal(book);
+        }
+
+        function deleteBook(id) {
+            if (confirm('Удалить эту книгу? Все связанные выдачи также будут удалены!')) {
+                books = books.filter(b => b.id != id);
+                loans = loans.filter(l => l.bookId != id);
+                saveData();
+                renderBooks();
+                renderLoans();
+                renderStats();
+            }
+        }
+
+        // ===== СТУДЕНТЫ =====
+        function renderStudents() {
+            const table = document.getElementById('studentsTable');
+            table.innerHTML = students.map(student => `
+                <tr>
+                    <td>${student.id}</td>
+                    <td>${student.name}</td>
+                    <td>${student.group}</td>
+                    <td>${student.contact || '-'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="editStudent(${student.id})">✏️</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteStudent(${student.id})">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function showStudentModal(student = null) {
+            const modal = new bootstrap.Modal(document.getElementById('studentModal'));
+            const form = document.getElementById('studentForm');
+            
+            form.reset();
+            document.getElementById('studentId').value = '';
+            
+            if (student) {
+                document.getElementById('studentModalTitle').textContent = 'Редактировать студента';
+                document.getElementById('studentId').value = student.id;
+                document.getElementById('studentName').value = student.name;
+                document.getElementById('studentGroup').value = student.group;
+                document.getElementById('studentContact').value = student.contact || '';
+            } else {
+                document.getElementById('studentModalTitle').textContent = 'Добавить студента';
+            }
+            
+            modal.show();
+        }
+
+        function saveStudent() {
+            const id = document.getElementById('studentId').value;
+            const name = document.getElementById('studentName').value.trim();
+            const group = document.getElementById('studentGroup').value.trim();
+            const contact = document.getElementById('studentContact').value.trim();
+            
+            if (!name || !group) {
+                alert('Заполните обязательные поля!');
+                return;
+            }
+            
+            if (id) {
+                // Редактирование существующего студента
+                const index = students.findIndex(s => s.id == id);
+                if (index !== -1) {
+                    students[index] = { 
+                        ...students[index],
+                        name, 
+                        group, 
+                        contact: contact || null
+                    };
+                }
+            } else {
+                // Добавление нового студента
+                const newId = students.length > 0 ? Math.max(...students.map(s => s.id)) + 1 : 1;
+                students.push({
+                    id: newId,
+                    name,
+                    group,
+                    contact: contact || null
+                });
+            }
+            
+            saveData();
+            renderStudents();
+            bootstrap.Modal.getInstance(document.getElementById('studentModal')).hide();
+        }
+
+        function editStudent(id) {
+            const student = students.find(s => s.id == id);
+            if (student) showStudentModal(student);
+        }
+
+        function deleteStudent(id) {
+            if (confirm('Удалить этого студента? Все связанные выдачи также будут удалены!')) {
+                students = students.filter(s => s.id != id);
+                loans = loans.filter(l => l.studentId != id);
+                saveData();
+                renderStudents();
+                renderLoans();
+                renderStats();
+            }
+        }
+
+        // ===== ВЫДАЧИ КНИГ =====
+        function renderLoans() {
+            const table = document.getElementById('loansTable');
+            table.innerHTML = loans.map(loan => {
+                const student = students.find(s => s.id == loan.studentId);
+                const book = books.find(b => b.id == loan.bookId);
+                const isOverdue = !loan.returned && new Date(loan.dueDate) < new Date();
+                const status = loan.returned 
+                    ? '<span class="badge bg-secondary">Возвращена</span>'
+                    : isOverdue 
+                        ? '<span class="badge bg-danger">Просрочена</span>'
+                        : '<span class="badge bg-primary">На руках</span>';
+                
+                return `
+                    <tr>
+                        <td>${loan.id}</td>
+                        <td>${student?.name || 'Неизвестно'}</td>
+                        <td>${book?.title || 'Неизвестно'}</td>
+                        <td>${loan.issueDate}</td>
+                        <td>${loan.dueDate}</td>
+                        <td>${status}</td>
+                        <td>
+                            ${!loan.returned ? `<button class="btn btn-sm btn-success" onclick="returnBook(${loan.id})">✅ Вернуть</button>` : ''}
+                            <button class="btn btn-sm btn-danger" onclick="deleteLoan(${loan.id})">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function showLoanModal() {
+            const modal = new bootstrap.Modal(document.getElementById('loanModal'));
+            const studentSelect = document.getElementById('loanStudent');
+            const bookSelect = document.getElementById('loanBook');
+            
+            // Заполняем список студентов
+            studentSelect.innerHTML = '<option value="">Выберите студента</option>';
+            students.forEach(student => {
+                const option = document.createElement('option');
+                option.value = student.id;
+                option.textContent = `${student.name} (${student.group})`;
+                studentSelect.appendChild(option);
+            });
+            
+            // Заполняем список доступных книг
+            bookSelect.innerHTML = '<option value="">Выберите книгу</option>';
+            books.filter(book => book.available).forEach(book => {
+                const option = document.createElement('option');
+                option.value = book.id;
+                option.textContent = `${book.title} (${book.author})`;
+                bookSelect.appendChild(option);
+            });
+            
+            // Устанавливаем дату возврата (по умолчанию +14 дней)
+            const dueDate = new Date();
+            dueDate.setDate(dueDate.getDate() + 14);
+            document.getElementById('loanDueDate').value = dueDate.toISOString().split('T')[0];
+            
+            modal.show();
+        }
+
+        function saveLoan() {
+            const studentId = parseInt(document.getElementById('loanStudent').value);
+            const bookId = parseInt(document.getElementById('loanBook').value);
+            const dueDate = document.getElementById('loanDueDate').value;
+            
+            if (!studentId || !bookId || !dueDate) {
+                alert('Заполните все поля!');
+                return;
+            }
+            
+            const today = new Date().toISOString().split('T')[0];
+            const newId = loans.length > 0 ? Math.max(...loans.map(l => l.id)) + 1 : 1;
+            
+            loans.push({
+                id: newId,
+                studentId,
+                bookId,
+                issueDate: today,
+                dueDate,
+                returned: false
+            });
+            
+            // Помечаем книгу как недоступную
+            const bookIndex = books.findIndex(b => b.id === bookId);
+            if (bookIndex !== -1) {
+                books[bookIndex].available = false;
+            }
+            
+            saveData();
+            renderBooks();
+            renderLoans();
+            renderStats();
+            bootstrap.Modal.getInstance(document.getElementById('loanModal')).hide();
+        }
+
+        function returnBook(loanId) {
+            const loanIndex = loans.findIndex(l => l.id === loanId);
+            if (loanIndex !== -1) {
+                loans[loanIndex].returned = true;
+                
+                // Помечаем книгу как доступную
+                const bookId = loans[loanIndex].bookId;
+                const bookIndex = books.findIndex(b => b.id === bookId);
+                if (bookIndex !== -1) {
+                    books[bookIndex].available = true;
+                }
+                
+                saveData();
+                renderBooks();
+                renderLoans();
+                renderStats();
+            }
+        }
+
+        function deleteLoan(loanId) {
+            if (confirm('Удалить эту запись о выдаче?')) {
+                const loanIndex = loans.findIndex(l => l.id === loanId);
+                if (loanIndex !== -1 && !loans[loanIndex].returned) {
+                    // Помечаем книгу как доступную, если она не была возвращена
+                    const bookId = loans[loanIndex].bookId;
+                    const bookIndex = books.findIndex(b => b.id === bookId);
+                    if (bookIndex !== -1) {
+                        books[bookIndex].available = true;
+                    }
+                }
+                
+                loans = loans.filter(l => l.id !== loanId);
+                saveData();
+                renderBooks();
+                renderLoans();
+                renderStats();
+            }
+        }
+
+        // ===== СТАТИСТИКА =====
+        function renderStats() {
+            // Статистика по книгам
+            const activeLoans = loans.filter(l => !l.returned).length;
+            const overdueLoans = loans.filter(l => !l.returned && new Date(l.dueDate) < new Date()).length;
+            
+            renderChart('loansChart', 'Книг на руках', activeLoans);
+            renderChart('overdueChart', 'Просрочено', overdueLoans);
+            
+            // Статистика по студентам
+            const readersStats = document.getElementById('readersStats');
+            readersStats.innerHTML = students.map(student => {
+                const studentLoans = loans.filter(l => l.studentId === student.id && !l.returned);
+                const studentOverdue = studentLoans.filter(l => new Date(l.dueDate) < new Date()).length;
+                
+                return `
+                    <tr>
+                        <td>${student.name}</td>
+                        <td>${studentLoans.length}</td>
+                        <td>${studentOverdue}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderChart(canvasId, label, value) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            // Удаляем предыдущий график, если он есть
+            if (window[`${canvasId}Chart`]) {
+                window[`${canvasId}Chart`].destroy();
+            }
+            
+            window[`${canvasId}Chart`] = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: [label, 'Остальное'],
+                    datasets: [{
+                        data: [value, Math.max(1, 10 - value)],
+                        backgroundColor: [
+                            label === 'Просрочено' ? '#dc3545' : '#0d6efd',
+                            '#e9ecef'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
